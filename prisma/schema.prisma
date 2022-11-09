@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Component {
+  id                          String @id @default(auto()) @map("_id") @db.ObjectId
+  alias                       String
+  archived                    Boolean
+  category                    String
+  companyId                   String @db.ObjectId @map("company")
+  created                     Int
+  libraryId                   String @db.ObjectId @map("library")
+  name                        String
+  revision                    String?
+  specs                       Spec[]
+  status                      String?
+
+  // Relations
+  companyObj                  Company @relation(fields: [companyId], references: [id])
+  libraryObj                  Library @relation(fields: [libraryId], references: [id])
+
+  @@map("components")
+}
+
+type Spec {
+  key                         String?
+  value                       String
+}
+
+model Company {
+  id                          String @id @default(auto()) @map("_id") @db.ObjectId
+  archived                    Boolean
+  created                     Int
+  creatorId                   String? @db.ObjectId @map("creator")
+  name                        String
+  // Relations
+  Components                  Component[]
+  Libraries                   Library[]
+
+  @@map("companies")
+}
+
+model Library {
+  id                          String @id @default(auto()) @map("_id") @db.ObjectId
+  archived                    Boolean
+  companyId                   String @db.ObjectId @map("company")
+  created                     Int
+  name                        String
+  type                        LibraryType?
+  // Relations
+  companyObj                  Company? @relation(fields: [companyId], references: [id])
+  Components                  Component[]
+
+  @@map("libraries")
+}
+
+enum LibraryType {
+  GENERAL
+  PERSONAL
+}
